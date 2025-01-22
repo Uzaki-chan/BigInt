@@ -2,292 +2,243 @@
 #include <vector>
 #include <string>
 #include "BigInt.h"
-struct BigInt {
-    std::vector<int> Digits;  // Хранит цифры в обратном порядке
-    bool IsNegativ;            // Указывает, является ли число отрицательным
-
-    // Создание просто переменной по умолчанию
-    BigInt() : IsNegativ(false) {}
-
-    // Создание от строки
-    BigInt(const std::string& num) {
-        if (num[0] == '-') {
-            IsNegativ = true;
-            for (size_t i = num.size() - 1; i > 0; --i) {
-                Digits.push_back(num[i] - '0');
-            }
-        }
-        else {
-            IsNegativ = false;
-            for (size_t i = num.size(); i > 0; --i) {
-                Digits.push_back(num[i - 1] - '0');
-            }
-        }
-    }
-
-    // Создание от int
-    BigInt(int num) {
-        if (num < 0) {
-            IsNegativ = true;
-            num = -num;
-        }
-        else {
-            IsNegativ = false;
-        }
-        if (num == 0) {
-            Digits.push_back(0);
-        }
-        while (num > 0) {
-            Digits.push_back(num % 10);
-            num /= 10;
-        }
-    }
-    BigInt(long long num) {
-        if (num < 0) {
-            IsNegativ = true;
-            num = -num;
-        }
-        else {
-            IsNegativ = false;
-        }
-        while (num > 0) {
-            Digits.push_back(num % 10);
-            num /= 10;
-        }
-    }
-    BigInt(long num) {
-        if (num < 0) {
-            IsNegativ = true;
-            num = -num;
-        }
-        else {
-            IsNegativ = false;
-        }
-        while (num > 0) {
-            Digits.push_back(num % 10);
-            num /= 10;
-        }
-    }
-
-    // Функция ввода
-    void input() {
-        std::string num;
-        std::cin >> num;
-        *this = BigInt(num);
-    }
-
-    // Функция вывода
-    void output() const {
-        if (IsNegativ) {
-            std::cout << '-';
-        }
-        if (Digits.empty()) {
-            std::cout << '0';
-        }
-        else {
-            for (size_t i = Digits.size(); i > 0; --i) {
-                std::cout << Digits[i - 1];
-            }
-        }
-    }
-    // Унарный оператор для изменения знака числа
-    BigInt operator-() const {
-        BigInt result = *this;
-        result.IsNegativ = !IsNegativ; // Изменяем знак
-        return result;
-    }
-    BigInt& operator+=(const BigInt& other) {
-        return *this = (*this + other);
-    }
-    BigInt& operator-=(const BigInt& other) {
-        return *this = (*this - other);
-    }
-    const BigInt operator++() {
-        return (*this += 1);
-    }
-    const BigInt operator--() {
-        return (*this -= 1);
-    }
-    // Операция сложения
-    BigInt operator+(const BigInt& other) const {
-        BigInt result;
-        if (this->IsNegativ == other.IsNegativ) {
-            result.IsNegativ = this->IsNegativ;  // Сохраняем знак
-            long carry = 0;
-            size_t maxSize = Digits.size() > other.Digits.size() ? Digits.size() : other.Digits.size();
-            for (size_t i = 0; i < maxSize || carry != 0; ++i) {
-                long sum = carry;
-                if (i < Digits.size()) sum += Digits[i];
-                if (i < other.Digits.size()) sum += other.Digits[i];
-                result.Digits.push_back(sum % 10);
-                carry = sum / 10;
-            }
-        }
-        else if (!(this->IsNegativ)) {
-            // A + (-B) = A - B
-            return *this - (-(other));
-        }
-        else {
-            // -A + B = B - A
-            return other - (-(*this));
-        }
-        return result;
-    }
-
-    // Операция вычитания (подразумевается, что this >= other)
-    BigInt operator-(const BigInt& other) const {
-        if (*this < other) {
-            return -(other - *this);
-        }
-        BigInt result;
-        if (this->IsNegativ != other.IsNegativ) {
-            return *this + (-other);
-        }
-        // Реализация вычитания
-        long carry = 0;
-        size_t maxSize = Digits.size();
-        for (size_t i = 0; i < maxSize; ++i) {
-            long digit1 = Digits[i];
-            long digit2 = (i < other.Digits.size()) ? other.Digits[i] : 0;
-            long sub = digit1 - digit2 - carry;
-            if (sub < 0) {
-                sub += 10;
-                carry = 1; // берем заимствование
+BigInt toBigIntStr(std::string& num) {
+    BigInt result;
+    if (num[0] == '-') {
+        result.IsNegativ = true;
+        for (size_t i = num.size() - 1; i > 0; --i) {
+            if (num[i] >= '0' && num[i] <= '9') {
+                result.Digits.push_back(num[i] - '0');
             }
             else {
-                carry = 0;
+                std::cout << "были обнаружены и удалены буквы из ввода\n";
             }
-            result.Digits.push_back(sub);
         }
-        // Удаляем ведущие нули
-        while (result.Digits.size() > 1 && result.Digits.back() == 0) {
-            result.Digits.pop_back();
+    }
+    else {
+        result.IsNegativ = false;
+        for (size_t i = num.size(); i > 0; --i) {
+            if (num[i - 1] >= '0' && num[i - 1] <= '9') {
+                result.Digits.push_back(num[i - 1] - '0');
+            }
+            else {
+                std::cout << "были обнаружены и удалены буквы из ввода\n";
+            }
         }
+    }
+    return result;
+}
 
-        // Устанавливаем знак результата
-        if (result.Digits.empty() || (result.Digits.size() == 1 && result.Digits[0] == 0)) {
-            result.IsNegativ = false; // результат 0
+// Создание от int
+BigInt toBigIntInt(long long num) {
+    BigInt result;
+    if (num < 0) {
+        result.IsNegativ = true;
+        num = -num;
+    }
+    else {
+        result.IsNegativ = false;
+    }
+    if (num == 0) {
+        result.Digits.push_back(0);
+    }
+    while (num > 0) {
+        result.Digits.push_back(num % 10);
+        num /= 10;
+    }
+    return result;
+}
+
+// Функция ввода
+void input(BigInt& th1s) {
+    std::string num;
+    std::cin >> num;
+    th1s = toBigIntStr(num);
+}
+
+// Функция вывода
+void output(BigInt th1s) {
+    if (th1s.IsNegativ) {
+        std::cout << '-';
+    }
+    if (th1s.Digits.empty()) {
+        std::cout << '0';
+    }
+    else {
+        for (size_t i = th1s.Digits.size(); i >0; --i) {
+            std::cout << th1s.Digits[i-1];
+        }
+    }
+}
+// Унарный оператор для изменения знака числа
+BigInt negative(BigInt th1s) {
+    th1s.IsNegativ = !th1s.IsNegativ; // Изменяем знак
+    return th1s;
+}
+// Операция сравнения
+bool equally(BigInt left, BigInt right) {
+    return left.IsNegativ == right.IsNegativ && left.Digits == right.Digits;
+}
+bool IsMin(BigInt left, BigInt right) {
+    // Сравнение по модулю
+    if (left.IsNegativ != right.IsNegativ) {
+        return left.IsNegativ; // Если одно отрицательное, а другое нет, то меньше
+    }
+    if (left.Digits.size() != right.Digits.size()) {
+        return left.IsNegativ ? (left.Digits.size() > right.Digits.size()) : (left.Digits.size() < right.Digits.size());
+    }
+    for (size_t i = 0; i < left.Digits.size(); ++i) {
+        if (left.Digits[left.Digits.size() - 1 - i] != right.Digits[right.Digits.size() - 1 - i]) {
+            return left.IsNegativ ? (left.Digits[left.Digits.size() - 1 - i] > right.Digits[right.Digits.size() - 1 - i]) :
+                (left.Digits[left.Digits.size() - 1 - i] < right.Digits[right.Digits.size() - 1 - i]);
+        }
+    }
+    return false; // Равны
+}
+// Операция вычитания (подразумевается, что this >= other)
+BigInt substract(BigInt left, BigInt right) {
+    if (IsMin(left, right)) {
+        return negative(substract(right, left));
+    }
+    BigInt result;
+    if (left.IsNegativ != right.IsNegativ) {
+        return substract(right, negative(left));
+    }
+    // Реализация вычитания
+    long carry = 0;
+    size_t maxSize = left.Digits.size();
+    for (size_t i = 0; i < maxSize; ++i) {
+        long digit1 = left.Digits[i];
+        long digit2 = (i < right.Digits.size()) ? right.Digits[i] : 0;
+        long sub = digit1 - digit2 - carry;
+        if (sub < 0) {
+            sub += 10;
+            carry = 1; // берем заимствование
         }
         else {
-            result.IsNegativ = (this->IsNegativ); // сохраняем знак
+            carry = 0;
         }
-
-        return result;
+        result.Digits.push_back(sub);
     }
-    // Операция сравнения
-    bool operator==(const BigInt& other) const {
-        return IsNegativ == other.IsNegativ && Digits == other.Digits;
-    }
-
-    bool operator!=(const BigInt& other) const {
-        return !(*this == other);
+    // Удаляем ведущие нули
+    while (result.Digits.size() > 1 && result.Digits.back() == 0) {
+        result.Digits.pop_back();
     }
 
-    bool operator<(const BigInt& other) const {
-        // Сравнение по модулю
-        if (IsNegativ != other.IsNegativ) {
-            return IsNegativ; // Если одно отрицательное, а другое нет, то меньше
+    // Устанавливаем знак результата
+    if (result.Digits.empty() || (result.Digits.size() == 1 && result.Digits[0] == 0)) {
+        result.IsNegativ = false; // результат 0
+    }
+    else {
+        result.IsNegativ = (left.IsNegativ); // сохраняем знак
+    }
+
+    return result;
+}
+// Операция сложения
+BigInt summ(BigInt left, BigInt right) {
+    BigInt result;
+    if (left.IsNegativ == right.IsNegativ) {
+        result.IsNegativ = left.IsNegativ;  // Сохраняем знак
+        long carry = 0;
+        size_t maxSize = left.Digits.size() > right.Digits.size() ? left.Digits.size() : right.Digits.size();
+        for (size_t i = 0; i < maxSize || carry != 0; ++i) {
+            long sum = carry;
+            if (i < left.Digits.size()) sum += left.Digits[i];
+            if (i < right.Digits.size()) sum += right.Digits[i];
+            result.Digits.push_back(sum % 10);
+            carry = sum / 10;
         }
-        if (Digits.size() != other.Digits.size()) {
-            return IsNegativ ? (Digits.size() > other.Digits.size()) : (Digits.size() < other.Digits.size());
-        }
-        for (size_t i = 0; i < Digits.size(); ++i) {
-            if (Digits[Digits.size() - 1 - i] != other.Digits[other.Digits.size() - 1 - i]) {
-                return IsNegativ ? (Digits[Digits.size() - 1 - i] > other.Digits[other.Digits.size() - 1 - i]) :
-                    (Digits[Digits.size() - 1 - i] < other.Digits[other.Digits.size() - 1 - i]);
+    }
+    else if (!(left.IsNegativ)) {
+        // A + (-B) = A - B
+        return substract(left, negative(right));
+    }
+    else {
+        // -A + B = B - A
+        return substract(right, negative(left));
+    }
+    return result;
+}
+
+
+
+BigInt multiply(BigInt left, BigInt right) {
+    // Хранит результат умножения
+    BigInt result = toBigIntInt(0);
+    result.Digits.resize(left.Digits.size() + right.Digits.size(), 0);
+
+    // Умножение
+    for (size_t i = 0; i < left.Digits.size(); ++i) {
+        long long carry = 0;  // Перенос
+        for (size_t j = 0; j < right.Digits.size() || carry; ++j) {
+            long long current = result.Digits[i + j] + carry; // Текущая ячейка
+            if (j < right.Digits.size()) {
+                current += left.Digits[i] * right.Digits[j]; // Умножение
             }
+            result.Digits[i + j] = current % 10; // Последняя цифра
+            carry = current / 10; // Перенос
         }
-        return false; // Равны
     }
 
-    bool operator>(const BigInt& other) const {
-        return other < *this;
-    }
-    bool operator>=(const BigInt& other) const {
-        return other < *this || other == *this;
-    }
-    bool operator<=(const BigInt& other) const {
-        return other > *this || other == *this;
-    }
-    BigInt operator*(const BigInt& other) const {
-        // Хранит результат умножения
-        BigInt result("0");
-        result.Digits.resize(Digits.size() + other.Digits.size(), 0);
-
-        // Умножение
-        for (size_t i = 0; i < Digits.size(); ++i) {
-            long carry = 0;  // Перенос
-            for (size_t j = 0; j < other.Digits.size() || carry; ++j) {
-                long long current = result.Digits[i + j] + carry; // Текущая ячейка
-                if (j < other.Digits.size()) {
-                    current += Digits[i] * other.Digits[j]; // Умножение
-                }
-                result.Digits[i + j] = current % 10; // Последняя цифра
-                carry = current / 10; // Перенос
-            }
-        }
-
-        // Убираем ведущие нули
-        while (result.Digits.size() > 1 && result.Digits.back() == 0) {
-            result.Digits.pop_back();
-        }
-
-        result.IsNegativ = IsNegativ != other.IsNegativ; // Устанавливаем знак результата
-        return result;
-    }
-    // Деление
-    BigInt operator/(const BigInt& other) const {
-        if (other == 0) {
-            throw std::invalid_argument("Деление на ноль");
-        }
-        BigInt result("0");
-        BigInt denominator = *this;
-        BigInt numerator = other;
-        result.IsNegativ = (IsNegativ != other.IsNegativ); // Устанавливаем знак
-
-        denominator.IsNegativ = false; // Работаем с положительными числами
-        numerator.IsNegativ = false;
-
-        while (denominator >= numerator) {
-            denominator = denominator - numerator;
-            result += 1; // Увеличиваем результат
-        }
-
-        return result;
-    }
-    BigInt operator%(const BigInt& other) const {
-        if (other == 0) {
-            throw std::invalid_argument("Деление на ноль");
-        }
-        BigInt denominator = *this;
-        BigInt numerator = other;
-
-        denominator.IsNegativ = false; // Работаем с положительными числами
-        numerator.IsNegativ = false;
-
-        while (denominator >= numerator) {
-            denominator = denominator - numerator;
-        }
-
-        return denominator;
-    }
-    // проверяет, является ли текущее число нечетным
-    bool odd() const {
-        if (this->Digits.size() == 0) return false;  // Убедитесь, что число не пустое
-        return (this->Digits[0] % 2);  // Возвращает true, если последнее число нечетное
+    // Убираем ведущие нули
+    while (result.Digits.size() > 1 && result.Digits.back() == 0) {
+        result.Digits.pop_back();
     }
 
-    const BigInt pow(BigInt n) const {
-        if (n == 0) return 1;  // любое число в нулевой степени равно 1
-        if (n < 0) throw std::invalid_argument("Возведение в отрицательную степень");
-
-        BigInt a(*this), result(1);  // Инициализируем result как 1
-        while (n != 0) {
-            if (n.odd()) result = result * a; // умножаем на основание если n нечетное
-            a = a * a;  // возводим основание в квадрат
-            n = n / 2;  // делим n на 2
-        }
-
-        return result;
+    result.IsNegativ = left.IsNegativ != right.IsNegativ; // Устанавливаем знак результата
+    return result;
+}
+// Деление
+BigInt shift(BigInt left, BigInt right) {
+    if (equally(right, toBigIntInt(0))) {
+        throw std::invalid_argument("Деление на ноль");
     }
-};
+    BigInt result = toBigIntInt(0);
+    BigInt denominator = left;
+    BigInt numerator = right;
+    result.IsNegativ = (left.IsNegativ != right.IsNegativ); // Устанавливаем знак
+
+    denominator.IsNegativ = false; // Работаем с положительными числами
+    numerator.IsNegativ = false;
+
+    while (!(IsMin(denominator, numerator)) || equally(denominator, numerator)) {
+        denominator = substract(denominator, numerator);
+        result = summ(result, toBigIntInt(1)); // Увеличиваем результат
+    }
+
+    return result;
+}
+BigInt remains(BigInt left, BigInt right) {
+    if (equally(right, toBigIntInt(0))) {
+        throw std::invalid_argument("Деление на ноль");
+    }
+    BigInt denominator = left;
+    BigInt numerator = right;
+
+    denominator.IsNegativ = false; // Работаем с положительными числами
+    numerator.IsNegativ = false;
+
+    while (!(IsMin(denominator, numerator)) || equally(denominator, numerator)) {
+        denominator = substract(denominator, numerator);
+    }
+
+    return denominator;
+}
+// проверяет, является ли текущее число нечетным
+bool odd(BigInt th1s) {
+    if (th1s.Digits.size() == 0) return false;  // Убедитесь, что число не пустое
+    return (th1s.Digits[0] % 2);  // Возвращает true, если последнее число нечетное
+}
+BigInt pow(BigInt a, BigInt n) {
+    if (equally(n, toBigIntInt(0))) return toBigIntInt(1);  // любое число в нулевой степени равно 1
+    if (IsMin(n, toBigIntInt(0))) throw std::invalid_argument("Возведение в отрицательную степень");
+    BigInt result = toBigIntInt(1);  // Инициализируем result как 1
+    while (!(equally(n, toBigIntInt(0)))) {
+        if (odd(n)) result = multiply(result, a); // умножаем на основание если n нечетное
+        a = multiply(a, a);  // возводим основание в квадрат
+        n = shift(n, toBigIntInt(2));  // делим n на 2
+    }
+
+    return result;
+}

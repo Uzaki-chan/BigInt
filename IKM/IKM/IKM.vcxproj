@@ -21,7 +21,7 @@
   <PropertyGroup Label="Globals">
     <VCProjectVersion>17.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>
-    <ProjectGuid>{f042f6ce-8eba-4acd-888e-0537b08f47e1}</ProjectGuid>
+    <ProjectGuid>{23b34988-b2f9-41cf-8ba0-b1fa4413edab}</ProjectGuid>
     <RootNamespace>IKM</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
@@ -127,11 +127,11 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="BigInt.h" />
-    <ClInclude Include="Header1.h" />
+    <ClCompile Include="BigInt.cpp" />
+    <ClCompile Include="IKM.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="IKM.cpp" />
+    <ClInclude Include="BigInt.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
